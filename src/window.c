@@ -6377,6 +6377,7 @@ set_fraction(win_T *wp)
     void
 spsc_correct_scroll(win_T *next_curwin, int flags)
 {
+    int      state;
     int      curnormal;
     int      tabwins = 0;
     int      framewins = 0;
@@ -6384,6 +6385,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
     win_T    *wp;
     frame_T  *fr;
     linenr_T lnum;
+    linenr_T nlnum;
 
     FOR_ALL_WINDOWS_IN_TAB(curtab, wp)
         tabwins++;
@@ -6399,7 +6401,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
 
         // When resizing set invalid cursor to botline.
         if (flags & SPSC_RESIZE) {
-            wp->w_valid = ~VALID_BOTLINE;
+            wp->w_valid &= ~VALID_BOTLINE;
             validate_botline_win(wp);
             if (lnum > (wp->w_botline - so - 1))
                 wp->w_cursor.lnum = wp->w_botline - so - 1;
@@ -6424,7 +6426,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
         }
         else
         {
-            wp->w_valid = ~VALID_BOTLINE;
+            wp->w_valid &= ~VALID_BOTLINE;
             validate_botline_win(wp);
             if (flags & SPSC_WINBAR)
                 wp->w_cursor.lnum = wp->w_botline - WINBAR_HEIGHT(curwin) - 1;
@@ -6440,15 +6442,16 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
         // to be. Non-current windows may be left invalid and corrected
         // in win_close() or win_enter_ext() by spsc_correct_cursor().
         // If we are not in normal mode and cursor is invalid, scroll instead.
-        curnormal = (wp == curwin && get_real_state() != MODE_NORMAL);
+        state = get_real_state();
+        curnormal = wp == curwin && state != MODE_NORMAL && state != MODE_CMDLINE;
         if (wp == next_curwin || curnormal)
         {
-            int nlnum;
-
             if (lnum < (wp->w_topline + so))
-                wp->w_cursor.lnum = nlnum = wp->w_topline + (so ? so : (wp->w_height / 2));
+                wp->w_cursor.lnum = nlnum = wp->w_topline
+                                             + (so ? so : (wp->w_height / 2));
             else if (lnum > (wp->w_botline - so - 1))
-                wp->w_cursor.lnum = nlnum = wp->w_botline - (so ? (so + 1) : (wp->w_height / 2));
+                wp->w_cursor.lnum = nlnum = wp->w_botline
+                                       - (so ? (so + 1) : (wp->w_height / 2));
             else
                 wp->w_cursor.lnum = nlnum = lnum;
 
@@ -6485,7 +6488,7 @@ spsc_correct_cursor(win_T *wp)
     {
         if (wp->w_winrow == wp->w_prev_winrow)
         {
-            wp->w_valid &= ~(VALID_BOTLINE);
+            wp->w_valid &= ~VALID_BOTLINE;
             validate_botline_win(wp);
         }
         if (lnum > (wp->w_botline - so - 1))
