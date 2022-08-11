@@ -1589,16 +1589,21 @@ func Test_splitscroll_with_splits()
     execute (i == 1) ? 'nnoremenu 1.10 WinBar.Test :echo' : ''
     for j in [0, 1]
       execute 'set ' . ((j == 1) ? 'splitbelow' : 'nosplitbelow')
-      for so in [0, 5, 10]
+      for so in [0, 5]
         execute ':set scrolloff=' . so
         for ls in range(0, 2)
           let ls1win = (ls == 2) ? 1 : 0
           let ls2win = (ls != 0) ? 1 : 0
           execute ':set laststatus=' . ls | redrawstatus
+          norm L
           split | redraw | wincmd k
           call assert_equal(winheight(0), line("w$"))
           wincmd j
           call assert_equal(&lines - &cmdheight - ls2win - i, line("w$"))
+          quit | vsplit | wincmd l
+          call assert_equal(winheight(0), line("w$"))
+          wincmd h
+          call assert_equal(&lines - &cmdheight - ls2win, line("w$"))
           quit | copen | wincmd k
           call assert_equal(winheight(0), line("w$"))
           only | execute (i == 1) ? 'nnoremenu 1.10 WinBar.Test :echo' : '' | redraw
