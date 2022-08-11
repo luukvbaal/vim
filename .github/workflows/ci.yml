@@ -30,35 +30,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        features: [tiny, small, normal, huge]
-        compiler: [clang, gcc]
+        features: [huge]
+        compiler: [gcc]
         extra: [none]
         include:
-          - features: tiny
-            compiler: clang
-            extra: nogui
-          - features: tiny
-            compiler: gcc
-            extra: nogui
-          - features: normal
-            shadow: ./src/shadow
-          - features: huge
-            coverage: true
           - features: huge
             compiler: gcc
             coverage: true
             extra: testgui
             uchar: true
-          - features: huge
-            compiler: clang
-            extra: asan
-          - features: huge
-            compiler: gcc
-            coverage: true
-            extra: unittests
-          - features: normal
-            compiler: gcc
-            extra: vimtags
 
     steps:
       - name: Checkout repository from github

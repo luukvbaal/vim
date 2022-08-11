@@ -1564,14 +1564,19 @@ func Test_splitscroll_with_splits()
   set nosplitscroll
   set nowrap | redraw
   set lines=80 | redraw
+  set guiheadroom=-1 | redraw
   call setline(1, range(1, 256))
   for i in [0, 1]
+    call add(v:errors, (i == 1) ? "Winbar" : "No Winbar")
     execute (i == 1) ? 'nnoremenu 1.10 WinBar.Test :echo' : ''
     for j in [0, 1]
+      call add(v:errors, (j == 1) ? "splitbelow" : "nosplitbelow")
       execute 'set ' . ((j == 1) ? 'splitbelow' : 'nosplitbelow')
       for so in [0, 5, 10]
+        call add(v:errors, "scrolloff=" . so)
         execute ':set scrolloff=' . so
         for ls in range(0, 2)
+          call add(v:errors, "laststatus=" . ls)
           let ls1win = (ls == 2) ? 1 : 0
           let ls2win = (ls != 0) ? 1 : 0
           execute ':set laststatus=' . ls | redrawstatus
