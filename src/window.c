@@ -6445,7 +6445,7 @@ spsc_correct_cursor(win_T *wp, linenr_T lnum, int curnormal)
     if (lnum > so && lnum < (wp->w_topline + so))
         nlnum = wp->w_topline + so;
     else if (lnum > (wp->w_botline - so - 1)
-	    && lnum < (wp->w_buffer->b_ml.ml_line_count - so))
+	    && lnum < (wp->w_buffer->b_ml.ml_line_count + so + 1))
 	nlnum = wp->w_botline - so - 1;
 
     wp->w_cursor.lnum = lnum;
