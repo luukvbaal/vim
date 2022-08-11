@@ -6362,14 +6362,11 @@ set_fraction(win_T *wp)
 spsc_correct_scroll(win_T *next_curwin, int flags)
 {
     int      state, curnormal, framewins;
-    int      tabwins = 0;
+    int      tabwins = win_count();
     long     so;
     win_T    *wp;
     frame_T  *fr;
     linenr_T lnum;
-
-    FOR_ALL_WINDOWS_IN_TAB(curtab, wp)
-        tabwins++;
 
     FOR_ALL_WINDOWS_IN_TAB(curtab, wp)
     {
