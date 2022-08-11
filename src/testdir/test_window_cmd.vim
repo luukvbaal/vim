@@ -1563,8 +1563,6 @@ endfunc
 func Test_splitscroll_with_splits()
   set nosplitscroll
   set nowrap | redraw
-  set lines=80 | redraw
-  set guiheadroom=-1 | redraw
   call setline(1, range(1, 256))
   for i in [0, 1]
     call add(v:errors, (i == 1) ? "Winbar" : "No Winbar")
@@ -1576,6 +1574,8 @@ func Test_splitscroll_with_splits()
         call add(v:errors, "scrolloff=" . so)
         execute ':set scrolloff=' . so
         for ls in range(0, 2)
+  set guiheadroom=-1 | redraw
+  set lines=80 | redraw
           call add(v:errors, "laststatus=" . ls)
           let ls1win = (ls == 2) ? 1 : 0
           let ls2win = (ls != 0) ? 1 : 0
