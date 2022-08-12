@@ -1582,45 +1582,47 @@ endfunc
 
 func Test_splitscroll_with_splits()
   set nosplitscroll
-  set nowrap | redraw
+  set nowrap | redraw!
+  set lines=80 | redraw!
+  let gui = has("gui_running")
   for i in [0, 1]
     for j in [0, 1]
-      execute 'set ' . ((j == 1) ? 'splitbelow' : 'nosplitbelow')
       for k in [0, 1]
-        execute (k == 1) ? 'tabnew' : ''
-        call setline(1, range(1, 256))
         for so in [0, 5]
-          execute ':set scrolloff=' . so
           for ls in range(0, 2)
-            let ls1win = (ls == 2) ? 1 : 0
-            let ls2win = (ls != 0) ? 1 : 0
-            execute ':set laststatus=' . ls | redrawstatus
-            execute (i == 1) ? 'nnoremenu 1.10 WinBar.Test :echo' : '' | redraw
-            norm L
-            split | redraw | wincmd k
-            call assert_equal(winheight(0), line("w$"))
+            let tabline = (gui ? 0 : (k ? 1 : 0))
+            execute 'set scrolloff=' . so | redraw!
+            execute 'set laststatus=' . ls | redrawstatus!
+            execute 'set ' . ((j == 1) ? 'splitbelow' : 'nosplitbelow')
+            execute (k == 1) ? 'tabnew' : '' | redraw!
+            execute (i == 1) ? 'nnoremenu 1.10 WinBar.Test :echo' : '' | redraw!
+            call setline(1, range(1, 256)) | redraw!
+            norm ggL | redraw!
+            split | redraw! | wincmd k
+            call assert_equal(1, line("w0"))
             wincmd j
-            call assert_equal(&lines - &cmdheight - ls2win - i - k, line("w$"))
-            quit | vsplit | wincmd l
-            call assert_equal(winheight(0), line("w$"))
+            call assert_equal(win_screenpos(0)[0] - tabline - (j ? i : 0), line("w0"))
+            quit | vsplit | redraw! | wincmd l
+            call assert_equal(1, line("w0"))
             wincmd h
-            call assert_equal(&lines - &cmdheight - ls2win - k, line("w$"))
+            call assert_equal(1, line("w0"))
             quit | copen | wincmd k
-            call assert_equal(winheight(0), line("w$"))
-            only | execute (i == 1) ? 'nnoremenu 1.10 WinBar.Test :echo' : '' | redraw
-            call assert_equal(&lines - &cmdheight - ls1win - i - k, line("w$"))
-            above copen | let qfheight = winheight(0)
+            call assert_equal(1, line("w0"))
+            only | execute (i == 1) ? 'nnoremenu 1.10 WinBar.Test :echo' : '' | redraw!
+            call assert_equal(win_screenpos(0)[0] - tabline, line("w0"))
+            above copen | redraw!
             wincmd j
-            call assert_equal(qfheight + 2, line("w0"))
-            only
+            call assert_equal(win_screenpos(0)[0] - tabline, line("w0"))
+            only | redraw!
           endfor
         endfor
-        tabonly!
+        tabonly! | redraw!
       endfor
     endfor
   endfor
+  tabnew | tabonly!
 
-  bwipe!
+  %bwipeout!
   set wrap&
   set scrolloff&
   set splitbelow&

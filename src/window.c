@@ -6359,7 +6359,7 @@ set_fraction(win_T *wp)
     static void
 spsc_correct_scroll(win_T *next_curwin, int flags)
 {
-    int      state, curnormal, framewins;
+    int      state, curnormal, framewins, winmoved;
     int      tabwins = win_count();
     long     so;
     win_T    *wp;
@@ -6368,9 +6368,6 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
 
     FOR_ALL_WINDOWS_IN_TAB(curtab, wp)
     {
-        lnum = wp->w_cursor.lnum;
-        so = wp->w_p_so < 0 ? p_so : wp->w_p_so;
-
         // No need to correct scroll position if height has not changed.
         // Might need to correct cursor when window was closed.
         if (wp->w_prev_height == wp->w_height)
@@ -6380,10 +6377,13 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
             continue;
         }
 
+        lnum = wp->w_cursor.lnum;
+        winmoved = wp->w_winrow != wp->w_prev_winrow &&
+            (wp->w_winrow > tabline_height() || (flags & SPSC_CLOSE));
         // If winrow has moved, we maintain the same botline by setting
         // cursor position, depending on 'laststatus' and number of
         // windows in tab/frame. Scroll the cursor to FRACTION_MULT.
-        if (wp->w_winrow != wp->w_prev_winrow)
+        if (winmoved)
         {
             if (wp->w_frame->fr_parent)
             {
@@ -6399,6 +6399,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
 
         invalidate_botline_win(wp);
         validate_botline_win(wp);
+        so = wp->w_p_so < 0 ? p_so : wp->w_p_so;
         // When resizing shell, do not adjust botline.
         if ((flags & SPSC_RESIZE)
 		&& wp->w_cursor.lnum > (wp->w_botline - so - 1))
@@ -6407,8 +6408,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
             wp->w_prev_height = wp->w_height;
             continue;
         }
-        else if (wp->w_winrow != wp->w_prev_winrow
-		&& (wp->w_winrow > tabline_height() || (flags & SPSC_CLOSE)))
+        else if (winmoved)
         {
             p_so = 0;
             wp->w_fraction = FRACTION_MULT;
