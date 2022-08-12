@@ -1581,11 +1581,8 @@ func Test_window_alloc_failure()
 endfunc
 
 func Test_splitscroll_with_splits()
-  %bwipeout!
-  tabnew | tabonly!
   set nosplitscroll
   set nowrap | redraw!
-  set lines=180 | redraw
   let gui = has("gui_running")
   for i in [0, 1]
     call add(v:errors, (i == 1) ? "winbar" : "nowinbar")
@@ -1604,8 +1601,7 @@ func Test_splitscroll_with_splits()
             execute (k == 1) ? 'tabnew' : '' | redraw!
             execute (i == 1) ? 'nnoremenu 1.10 WinBar.Test :echo' : '' | redraw!
             call setline(1, range(1, 256)) | redraw!
-            norm ggL
-            redraw!
+            norm gg
             split | redraw! | wincmd k
             call assert_equal(1, line("w0"))
             wincmd j
