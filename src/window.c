@@ -6368,6 +6368,10 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
 
     FOR_ALL_WINDOWS_IN_TAB(curtab, wp)
     {
+        // Skip empty buffers
+        if (wp->w_botline == 1)
+            continue;
+
         // No need to correct scroll position if height has not changed.
         // Might need to correct cursor when window was closed.
         if (wp->w_prev_height == wp->w_height)
