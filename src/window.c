@@ -6368,9 +6368,10 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
 
     FOR_ALL_WINDOWS_IN_TAB(curtab, wp)
     {
-        // Skip empty buffers
-        if (wp->w_botline == 1)
-            continue;
+        // No need to scroll in empty or small buffer
+        if (wp->w_buffer->b_ml.ml_line_count < wp->w_height
+		|| wp->w_buffer->b_ml.ml_line_count == 1)
+	    goto end;
 
         // No need to correct scroll position if height has not changed.
         // Might need to correct cursor when window was closed.
@@ -6378,7 +6379,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
         {
 	    if (flags & SPSC_CLOSE)
 		spsc_correct_cursor(wp, lnum, FALSE);
-            continue;
+	    goto end;
         }
 
         lnum = wp->w_cursor.lnum;
@@ -6409,8 +6410,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
 		&& wp->w_cursor.lnum > (wp->w_botline - so - 1))
         {
             wp->w_cursor.lnum = wp->w_botline - so - 1;
-            wp->w_prev_height = wp->w_height;
-            continue;
+            goto end;
         }
         else if (winmoved)
         {
@@ -6426,7 +6426,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
         curnormal = wp == curwin && state != MODE_NORMAL && state != MODE_CMDLINE;
         if (wp == next_curwin || curnormal)
 	    spsc_correct_cursor(wp, lnum, curnormal);
-
+end:
         wp->w_prev_winrow = wp->w_winrow;
         wp->w_prev_height = wp->w_height;
     }
@@ -6440,6 +6440,11 @@ spsc_correct_cursor(win_T *wp, linenr_T lnum, int curnormal)
 {
     long     so = wp->w_p_so < 0 ? p_so : wp->w_p_so;
     linenr_T nlnum = 0;
+
+    if (wp->w_buffer->b_ml.ml_line_count < wp->w_height
+	    || wp->w_buffer->b_ml.ml_line_count == 1)
+	return;
+
     wp->w_cursor.lnum = wp->w_topline + so;
 
     if (lnum > so && lnum < (wp->w_topline + so))
