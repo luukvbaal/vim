@@ -6408,7 +6408,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
         if ((flags & SPSC_RESIZE)
 		&& wp->w_cursor.lnum > (wp->w_botline - so - 1))
         {
-            wp->w_cursor.lnum = wp->w_botline - so - 1;
+            wp->w_cursor.lnum = MAX(1, wp->w_botline - so - 1);
             goto skip;
         }
         else if (winmoved)
@@ -6416,7 +6416,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
             p_so = 0;
             wp->w_fraction = FRACTION_MULT;
             scroll_to_fraction(wp, wp->w_prev_height);
-            wp->w_cursor.lnum = wp->w_topline + so;
+            wp->w_cursor.lnum = MIN(wp->w_topline + so, wp->w_buffer->b_ml.ml_line_count);
             p_so = so;
         }
         // Ensure cursor position is valid for the current window to be
@@ -6444,13 +6444,11 @@ spsc_correct_cursor(win_T *wp, linenr_T lnum, int curnormal)
     if (wp->w_botline < 3)
 	return;
 
-    wp->w_cursor.lnum = wp->w_topline + so;
-
     if (lnum > so && lnum < (wp->w_topline + so))
-        nlnum = wp->w_topline + so;
+        nlnum = MIN(wp->w_topline + so, wp->w_buffer->b_ml.ml_line_count);
     else if (lnum > (wp->w_botline - so - 1)
 	    && lnum < (wp->w_buffer->b_ml.ml_line_count + so + 1))
-	nlnum = wp->w_botline - so - 1;
+	nlnum = MAX(1, wp->w_botline - so - 1);
 
     wp->w_cursor.lnum = lnum;
 
