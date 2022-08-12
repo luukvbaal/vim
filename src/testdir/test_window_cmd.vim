@@ -1588,7 +1588,6 @@ func Test_splitscroll_with_splits()
   for i in [0, 1]
     for j in [0, 1]
       for k in [0, 1]
-        for so in [0, 5]
           for ls in range(0, 2)
             let tabline = (gui ? 0 : (k ? 1 : 0))
             execute 'set scrolloff=' . so | redraw!
@@ -1614,7 +1613,6 @@ func Test_splitscroll_with_splits()
             wincmd j
             call assert_equal(win_screenpos(0)[0] - tabline, line("w0"))
             only | redraw!
-          endfor
         endfor
         tabonly! | redraw!
       endfor
