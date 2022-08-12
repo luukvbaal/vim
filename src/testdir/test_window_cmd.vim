@@ -1581,6 +1581,8 @@ func Test_window_alloc_failure()
 endfunc
 
 func Test_splitscroll_with_splits()
+  %bwipeout!
+  tabnew | tabonly!
   set nosplitscroll
   set nowrap | redraw!
   set lines=80 | redraw!
