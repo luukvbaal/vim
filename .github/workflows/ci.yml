@@ -49,6 +49,32 @@ jobs:
         toolchain: [msvc]
         arch: [x64]
         features: [HUGE]
+        include:
+          - arch: x64
+            vcarch: amd64
+            warch: x64
+            bits: 64
+            msystem: MINGW64
+            cygreg: registry
+            pyreg: ""
+          - arch: x86
+            vcarch: x86
+            warch: ia32
+            bits: 32
+            msystem: MINGW32
+            cygreg: registry32
+            pyreg: "-32"
+          - toolchain: mingw
+            arch: x64
+            features: HUGE
+            coverage: yes
+        exclude:
+          - toolchain: msvc
+            arch: x64
+            features: NORMAL
+          - toolchain: mingw
+            arch: x86
+            features: NORMAL
 
     steps:
       - name: Initialize
