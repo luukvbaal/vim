@@ -1607,12 +1607,12 @@ func Test_splitscroll_with_splits()
             call assert_equal(1, line("w0"))
             quit | copen | wincmd k
             call assert_equal(1, line("w0"))
-            only | execute (i == 1) ? 'nnoremenu 1.10 WinBar.Test :echo' : '' | redraw!
+            only! | execute (i == 1) ? 'nnoremenu 1.10 WinBar.Test :echo' : '' | redraw!
             call assert_equal(win_screenpos(0)[0] - tabline, line("w0"))
             above copen | redraw!
             wincmd j
             call assert_equal(win_screenpos(0)[0] - tabline, line("w0"))
-            only | redraw!
+            only! | redraw!
         endfor
         tabonly! | redraw!
       endfor
@@ -1622,6 +1622,7 @@ func Test_splitscroll_with_splits()
 
   %bwipeout!
   set wrap&
+  set lines&
   set scrolloff&
   set splitbelow&
   set laststatus&
