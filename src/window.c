@@ -6356,7 +6356,7 @@ set_fraction(win_T *wp)
  * scroll_to_fraction() call from win_new_height(). 
  * Instead we iterate over all windows in a tabpage.
  */
-    void
+    static void
 spsc_correct_scroll(win_T *next_curwin, int flags)
 {
     int      state, curnormal, framewins;
@@ -6431,7 +6431,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
 /*
  * Correct potentially invalid cursor position.
  */
-    void
+    static void
 spsc_correct_cursor(win_T *wp, linenr_T lnum, int curnormal)
 {
     long     so = wp->w_p_so < 0 ? p_so : wp->w_p_so;
