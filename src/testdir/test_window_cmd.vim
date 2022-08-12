@@ -1585,12 +1585,18 @@ func Test_splitscroll_with_splits()
   tabnew | tabonly!
   set nosplitscroll
   set nowrap | redraw!
+  set lines=180 | redraw
   let gui = has("gui_running")
   for i in [0, 1]
+    call add(v:errors, (i == 1) ? "winbar" : "nowinbar")
     for j in [0, 1]
+      call add(v:errors, (j == 1) ? "splitbelow" : "nosplitbelow")
       for k in [0, 1]
+        call add(v:errors, (k == 1) ? "tabline" : "notabline")
         for so in [0, 5]
+          call add(v:errors, "scrolloff=" . so)
           for ls in range(0, 2)
+            call add(v:errors, "laststatus=" . ls)
             let tabline = (gui ? 0 : (k ? 1 : 0))
             execute 'set scrolloff=' . so | redraw!
             execute 'set laststatus=' . ls | redrawstatus!
