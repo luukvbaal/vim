@@ -4079,8 +4079,6 @@ win_new_tabpage(int after)
 	last_status(FALSE);
 
 	lastused_tabpage = prev_tp;
-	if(!p_spsc)
-	    spsc_correct_scroll(curwin, 0);
 
 #if defined(FEAT_GUI)
 	// When 'guioptions' includes 'L' or 'R' may have to remove or add
@@ -6409,7 +6407,8 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
             wp->w_prev_height = wp->w_height;
             continue;
         }
-        else if (wp->w_winrow != wp->w_prev_winrow)
+        else if (wp->w_winrow != wp->w_prev_winrow
+		&& (wp->w_winrow > tabline_height() || (flags & SPSC_CLOSE)))
         {
             p_so = 0;
             wp->w_fraction = FRACTION_MULT;
