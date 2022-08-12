@@ -6369,7 +6369,7 @@ spsc_correct_scroll(win_T *next_curwin, int flags)
     FOR_ALL_WINDOWS_IN_TAB(curtab, wp)
     {
         // Skip empty buffer.
-        if (wp->w_buffer->b_ml.ml_line_count < 3)
+        if (wp->w_botline < 3)
 	    goto skip;
 
         // No need to correct scroll position if height has not changed.
@@ -6441,7 +6441,7 @@ spsc_correct_cursor(win_T *wp, linenr_T lnum, int curnormal)
     linenr_T nlnum = 0;
 
     // Skip empty buffer.
-    if (wp->w_buffer->b_ml.ml_line_count < 3)
+    if (wp->w_botline < 3)
 	return;
 
     wp->w_cursor.lnum = wp->w_topline + so;
