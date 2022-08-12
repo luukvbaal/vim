@@ -1585,7 +1585,6 @@ func Test_splitscroll_with_splits()
   tabnew | tabonly!
   set nosplitscroll
   set nowrap | redraw!
-  set lines=80 | redraw!
   let gui = has("gui_running")
   for i in [0, 1]
     for j in [0, 1]
@@ -1600,6 +1599,7 @@ func Test_splitscroll_with_splits()
             execute (i == 1) ? 'nnoremenu 1.10 WinBar.Test :echo' : '' | redraw!
             call setline(1, range(1, 256)) | redraw!
             norm ggL
+            redraw!
             split | redraw! | wincmd k
             call assert_equal(1, line("w0"))
             wincmd j
