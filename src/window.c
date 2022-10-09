@@ -5195,6 +5195,8 @@ win_free(
     vim_free(wp->w_lcs_chars.leadmultispace);
 
 #ifdef FEAT_EVAL
+    free_callback(&wp->w_nuf_cb);
+    free_string_option(wp->w_p_nuf);
     vars_clear(&wp->w_vars->dv_hashtab);	// free all w: variables
     hash_init(&wp->w_vars->dv_hashtab);
     unref_var_dict(wp->w_vars);

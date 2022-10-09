@@ -354,4 +354,63 @@ func Test_number_no_text_virtual_edit()
   bwipe!
 endfunc
 
+" Test for displaying line numbers with 'numberfunc'
+func Test_number_with_numberfunc()
+  CheckScreendump
+
+  let lines =<< trim END
+    set relativenumber
+    set numberfunc=Nuf
+    function Nuf(lnum, rnum)
+      if (a:rnum == 0 || lnum == rnum)
+        return [printf("=>%d", a:lnum), v:true]
+      else
+        return [string(a:lnum), v:true]
+      endif
+    endfunc
+    call setline(1, repeat(['aaaa'], 10))
+    norm M
+  END
+  call writefile(lines, 'XTestNumberWithNumberfunc', 'D')
+  let buf = RunVimInTerminal('-S XTestNumberWithNumberfunc', #{rows: 10})
+
+  call VerifyScreenDump(buf, 'Test_numberfunc_1', {})
+
+  call term_sendkeys(buf, ":set number\<CR>")
+  call VerifyScreenDump(buf, 'Test_numberfunc_2', {})
+
+  call term_sendkeys(buf, ":set norelativenumber\<CR>")
+  call VerifyScreenDump(buf, 'Test_numberfunc_3', {})
+  call StopVimInTerminal(buf)
+endfunc
+
+" Test for invalid 'numberfunc' callbacks
+func Test_numberfunc_callback()
+  function Nuf(lnum, cursorline)
+      return "wrong return type"
+  endfunc
+  set number
+
+  set numberfunc=Nuf
+  call assert_fails('redraw', 'E987')
+
+  function! Nuf(lnum, cursorline)
+      return [] " empty list
+  endfunc
+
+  set numberfunc=Nuf
+  call assert_fails('redraw', 'E987')
+
+  function! Nuf(lnum, cursorline)
+      return ["asd"] " wrong list
+  endfunc
+
+  set numberfunc=Nuf
+  call assert_fails('redraw', 'E987')
+
+  set number&
+  set numberfunc&
+  delfunction Nuf
+endfunc
+
 " vim: shiftwidth=2 sts=2 expandtab

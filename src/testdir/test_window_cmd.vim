@@ -1849,6 +1849,7 @@ function Test_splitkeep_callback()
 
   call term_sendkeys(buf, ":quit\<CR>Gt")
   call VerifyScreenDump(buf, 'Test_splitkeep_callback_4', {})
+  call StopVimInTerminal(buf)
 endfunc
 
 function Test_splitkeep_fold()
@@ -1879,6 +1880,7 @@ function Test_splitkeep_fold()
 
   call term_sendkeys(buf, ":wincmd k\<CR>:quit\<CR>")
   call VerifyScreenDump(buf, 'Test_splitkeep_fold_4', {})
+  call StopVimInTerminal(buf)
 endfunction
 
 " vim: shiftwidth=2 sts=2 expandtab

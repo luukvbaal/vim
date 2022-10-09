@@ -5761,6 +5761,36 @@ A jump table for the options with a short description can be found at |Q_op|.
 	    |nobody         |  3 nobody     |  0 nobody     |3   nobody
 	    |there          |  4 there      |  1 there      |  1 there
 
+						*'numberfunc'* *'nuf'*
+'numberfunc' 'nuf'	string	(default: empty)
+			local to window
+			{not available when compiled without the |+eval|
+			feature}
+	This option specifies a function to be used to print the number
+	column. The value can be the name of a function, a |lambda| or a
+	|Funcref|. See |option-value-function| for more information.
+	WARNING: this function is called for each buffer line so defining an
+	expensive callback function can negatively affect render performance.
+
+	The arguments to this function are:
+	  lnum		number: (relative) line number to be printed.
+	  rnum		number: whether the number to be printed belongs to
+	  the cursor line.
+
+	The function must return a list with the following items:
+	  string:	string to print in the number column.
+	  rightalign:	boolean that determines whether to string will be
+	  right or left aligned.
+
+	For example:
+	  func! Nuf(lnum, cursorline)
+	    if (a:cursorline)
+	      return [string(a:lnum), v:false]
+	    else
+	      return [string(a:lnum), v:true]
+	    end
+	  endfunc
+
 						*'numberwidth'* *'nuw'*
 'numberwidth' 'nuw'	number	(Vim default: 4  Vi default: 8)
 			local to window

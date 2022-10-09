@@ -5429,6 +5429,9 @@ get_varp(struct vimoption *p)
 	case PV_FMR:	return (char_u *)&(curwin->w_p_fmr);
 #endif
 	case PV_NU:	return (char_u *)&(curwin->w_p_nu);
+#ifdef FEAT_STL_OPT
+	case PV_NUF:	return (char_u *)&(curwin->w_p_nuf);
+#endif
 	case PV_RNU:	return (char_u *)&(curwin->w_p_rnu);
 #ifdef FEAT_LINEBREAK
 	case PV_NUW:	return (char_u *)&(curwin->w_p_nuw);
@@ -5649,6 +5652,9 @@ copy_winopt(winopt_T *from, winopt_T *to)
     to->wo_lcs = copy_option_val(from->wo_lcs);
     to->wo_fcs = copy_option_val(from->wo_fcs);
     to->wo_nu = from->wo_nu;
+#ifdef FEAT_STL_OPT
+    to->wo_nuf = copy_option_val(from->wo_nuf);
+#endif
     to->wo_rnu = from->wo_rnu;
     to->wo_ve = copy_option_val(from->wo_ve);
     to->wo_ve_flags = from->wo_ve_flags;
@@ -5803,6 +5809,7 @@ clear_winopt(winopt_T *wop UNUSED)
 # ifdef FEAT_EVAL
     clear_string_option(&wop->wo_fde);
     clear_string_option(&wop->wo_fdt);
+    clear_string_option(&wop->wo_nuf);
 # endif
     clear_string_option(&wop->wo_fmr);
 #endif

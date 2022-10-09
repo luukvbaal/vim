@@ -236,6 +236,10 @@ typedef struct
 #define w_p_fcs w_onebuf_opt.wo_fcs	// 'fillchars'
     int		wo_nu;
 #define w_p_nu w_onebuf_opt.wo_nu	// 'number'
+#ifdef FEAT_STL_OPT
+    char_u	*wo_nuf;
+#define w_p_nuf w_onebuf_opt.wo_nuf	// 'numberformat'
+#endif
     int		wo_rnu;
 #define w_p_rnu w_onebuf_opt.wo_rnu	// 'relativenumber'
     char_u	*wo_ve;
@@ -3673,6 +3677,7 @@ struct window_S
 				      // with "cursorline" set
     callback_T	w_close_cb;	    // popup close callback
     callback_T	w_filter_cb;	    // popup filter callback
+    callback_T	w_nuf_cb;	    // 'numberfunc' callback
     int		w_filter_errors;    // popup filter error count
     int		w_filter_mode;	    // mode when filter callback is used
 

@@ -180,6 +180,9 @@
 #define PV_LCS		OPT_BOTH(OPT_WIN(WV_LCS))
 #define PV_FCS		OPT_BOTH(OPT_WIN(WV_FCS))
 #define PV_NU		OPT_WIN(WV_NU)
+#ifdef FEAT_STL_OPT
+#define PV_NUF		OPT_WIN(WV_NUF)
+#endif
 #define PV_RNU		OPT_WIN(WV_RNU)
 #define PV_VE		OPT_BOTH(OPT_WIN(WV_VE))
 #ifdef FEAT_LINEBREAK
@@ -1734,6 +1737,15 @@ static struct vimoption options[] =
     {"number",	    "nu",   P_BOOL|P_VI_DEF|P_RWIN,
 			    (char_u *)VAR_WIN, PV_NU,
 			    {(char_u *)FALSE, (char_u *)0L} SCTX_INIT},
+    {"numberformat"  ,"nuf",  P_STRING|P_ALLOCED|P_VI_DEF|P_SECURE|P_FUNC|P_RWIN,
+#ifdef FEAT_EVAL
+			    (char_u *)VAR_WIN, PV_NUF,
+			    {(char_u *)"", (char_u *)0L}
+# else
+			    (char_u *)NULL, PV_NONE,
+			    {(char_u *)0L, (char_u *)0L}
+# endif
+			    SCTX_INIT},
     {"numberwidth", "nuw",  P_NUM|P_RWIN|P_VIM,
 #ifdef FEAT_LINEBREAK
 			    (char_u *)VAR_WIN, PV_NUW,
