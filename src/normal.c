@@ -6514,6 +6514,7 @@ nv_bck_word(cmdarg_T *cap)
     else if ((fdo_flags & FDO_HOR) && KeyTyped && cap->oap->op_type == OP_NOP)
 	foldOpenCursor();
 #endif
+    adjust_skipcol();
 }
 
 /*
