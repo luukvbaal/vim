@@ -560,8 +560,6 @@ buf_get_signattrs(win_T *wp, linenr_T lnum, sign_attrs_T *sattr)
 
 /*
  * Delete sign 'id' in group 'group' from buffer 'buf'.
- * If 'id' is zero, then delete all the signs in group 'group'. Otherwise
- * delete only the specified sign.
  * If 'group' is '*', then delete the sign in all the groups. If 'group' is
  * NULL, then delete the sign in the global group. Otherwise delete the sign in
  * the specified group.
@@ -585,7 +583,7 @@ buf_delsign(
     for (sign = buf->b_signlist; sign != NULL; sign = next)
     {
 	next = sign->se_next;
-	if ((id == 0 || sign->se_id == id)
+	if (sign->se_id == id
 		&& (atlnum == 0 || sign->se_lnum == atlnum)
 		&& sign_in_group(sign, group))
 
@@ -604,7 +602,7 @@ buf_delsign(
 	    // group or deleting any sign at a particular line number, delete
 	    // only one sign.
 	    if (group == NULL
-		    || (*group != '*' && id != 0)
+		    || (*group != '*')
 		    || (*group == '*' && atlnum != 0))
 		break;
 	}
