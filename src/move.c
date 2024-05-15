@@ -2785,7 +2785,7 @@ scroll_cursor_bot(int min_scroll, int set_topbot)
     }
     curwin->w_valid |= VALID_TOPLINE;
 
-    cursor_correct_sms();
+    // cursor_correct_sms();
 }
 
 /*
