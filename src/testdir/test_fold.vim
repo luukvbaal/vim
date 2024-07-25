@@ -1914,4 +1914,12 @@ func Test_foldexpr_end_fold()
   bwipe!
 endfunc
 
+" Cursor should not move beyond first line of folded end of buffer.
+func Test_cursor_down_fold_eob()
+  call setline(1, range(1, 3))
+  norm Gzfkj
+  call assert_equal(2, line('.'))
+  bwipe!
+endfunc
+
 " vim: shiftwidth=2 sts=2 expandtab

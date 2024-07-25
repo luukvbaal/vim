@@ -2839,7 +2839,13 @@ cursor_down_inner(win_T *wp, long n)
     linenr_T	line_count = wp->w_buffer->b_ml.ml_line_count;
 
     if (lnum + n >= line_count)
+    {
+#ifdef FEAT_FOLDING
+	// Cursor should end up on first line of fold at end-of-file.
+	hasFoldingWin(wp, line_count, &line_count, NULL, TRUE, NULL);
+#endif
 	lnum = line_count;
+    }
     else
 #ifdef FEAT_FOLDING
 	if (hasAnyFolding(wp))
@@ -2849,7 +2855,6 @@ cursor_down_inner(win_T *wp, long n)
 	// count each sequence of folded lines as one logical line
 	while (n--)
 	{
-	    // Move to last line of fold, will fail if it's the end-of-file.
 	    if (hasFoldingWin(wp, lnum, NULL, &last, TRUE, NULL))
 		lnum = last + 1;
 	    else
@@ -2877,14 +2882,14 @@ cursor_down(
 {
     linenr_T	lnum = curwin->w_cursor.lnum;
     linenr_T	line_count = curwin->w_buffer->b_ml.ml_line_count;
+
     // This fails if the cursor is already in the last line or would move
     // beyond the last line and '-' is in 'cpoptions'
-    if (n > 0
-	    && (lnum >= line_count
-		|| (lnum + n > line_count
-				     && vim_strchr(p_cpo, CPO_MINUS) != NULL)))
+    if (n > 0 && (lnum + n <= line_count
+				     || vim_strchr(p_cpo, CPO_MINUS) == NULL))
+	cursor_down_inner(curwin, n);
+    if (n > 0 && curwin->w_cursor.lnum == lnum)
 	return FAIL;
-    cursor_down_inner(curwin, n);
 
     // try to advance to the column we want to be at
     coladvance(curwin->w_curswant);
