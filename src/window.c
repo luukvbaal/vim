@@ -3831,6 +3831,7 @@ frame_has_win(frame_T *frp, win_T *wp)
     return FALSE;
 }
 
+static int set_command_height = FALSE;
 /*
  * Set a new height for a frame.  Recursively sets the height for contained
  * frames and windows.  Caller must take care of positions.
@@ -3847,6 +3848,15 @@ frame_new_height(
     int		extra_lines;
     int		h;
 
+    if (topfrp->fr_parent == NULL && !set_command_height)
+    {
+	// topframe: update the command line height, with side effects.
+	int new_ch = MAX(1, p_ch + topfrp->fr_height - height);
+	if (new_ch != p_ch)
+	    set_option_value((char_u *)"cmdheight", new_ch, NULL, 0);
+	if (height > ROWS_AVAIL)
+	    height = ROWS_AVAIL;
+    }
     if (topfrp->fr_win != NULL)
     {
 	// Simple case: just one window.
@@ -4393,6 +4403,12 @@ use_tabpage(tabpage_T *tp)
     firstwin = curtab->tp_firstwin;
     lastwin = curtab->tp_lastwin;
     curwin = curtab->tp_curwin;
+
+    // Use the stored value of p_ch, so that it can be different for each tab
+    // page.
+    if (p_ch != curtab->tp_ch_used)
+	clear_cmdline = TRUE;
+    p_ch = curtab->tp_ch_used;
 }
 
 /*
@@ -4915,7 +4931,6 @@ enter_tabpage(
     int		trigger_enter_autocmds,
     int		trigger_leave_autocmds)
 {
-    int		row;
     int		old_off = tp->tp_firstwin->w_winrow;
     win_T	*next_prevwin = tp->tp_prevwin;
     tabpage_T	*last_tab = curtab;
@@ -4931,22 +4946,10 @@ enter_tabpage(
     prevwin = next_prevwin;
 
     last_status(FALSE);		// status line may appear or disappear
-    row = win_comp_pos();	// recompute w_winrow for all windows
+    win_comp_pos();		// recompute w_winrow for all windows
 #ifdef FEAT_DIFF
     diff_need_scrollbind = TRUE;
 #endif
-
-    // Use the stored value of p_ch, so that it can be different for each tab
-    // page.
-    if (p_ch != curtab->tp_ch_used)
-	clear_cmdline = TRUE;
-    p_ch = curtab->tp_ch_used;
-
-    // When cmdheight is changed in a tab page with '<C-w>-', cmdline_row is
-    // changed but p_ch and tp_ch_used are not changed. Thus we also need to
-    // check cmdline_row.
-    if (row < cmdline_row && cmdline_row <= Rows - p_ch)
-	clear_cmdline = TRUE;
 
     // If there was a click in a window, it won't be usable for a following
     // drag.
@@ -6089,11 +6092,13 @@ shell_new_rows(void)
     if (h < frame_minheight(topframe, NULL))
 	h = frame_minheight(topframe, NULL);
 
+    set_command_height = TRUE;
     // First try setting the heights of windows with 'winfixheight'.  If
     // that doesn't result in the right height, forget about that option.
     frame_new_height(topframe, h, FALSE, TRUE);
     if (!frame_check_height(topframe, h))
 	frame_new_height(topframe, h, FALSE, FALSE);
+    set_command_height = FALSE;
 
     (void)win_comp_pos();		// recompute w_winrow and w_wincol
     compute_cmdrow();
@@ -6275,8 +6280,6 @@ win_setheight(int height)
     void
 win_setheight_win(int height, win_T *win)
 {
-    int		row;
-
     if (win == curwin)
     {
 	// Always keep current window at least one line high, even when
@@ -6291,18 +6294,7 @@ win_setheight_win(int height, win_T *win)
     frame_setheight(win->w_frame, height + win->w_status_height);
 
     // recompute the window positions
-    row = win_comp_pos();
-
-    /*
-     * If there is extra space created between the last window and the command
-     * line, clear it.
-     */
-    if (full_screen && msg_scrolled == 0 && row < cmdline_row)
-	screen_fill(row, cmdline_row, 0, (int)Columns, ' ', ' ', 0);
-    cmdline_row = row;
-    msg_row = row;
-    msg_col = 0;
-
+    win_comp_pos();
     win_fix_scroll(TRUE);
 
     redraw_all_later(UPD_NOT_VALID);
@@ -6338,9 +6330,6 @@ frame_setheight(frame_T *curfrp, int height)
 
     if (curfrp->fr_parent == NULL)
     {
-	// topframe: can only change the command line height
-	if (height > ROWS_AVAIL)
-	    height = ROWS_AVAIL;
 	if (height > 0)
 	    frame_new_height(curfrp, height, FALSE, FALSE);
     }
@@ -6718,7 +6707,6 @@ win_drag_status_line(win_T *dragwin, int offset)
     frame_T	*curfr;
     frame_T	*fr;
     int		room;
-    int		row;
     int		up;	// if TRUE, drag status line up, otherwise down
     int		n;
 
@@ -6827,12 +6815,7 @@ win_drag_status_line(win_T *dragwin, int offset)
 	else
 	    fr = fr->fr_next;
     }
-    row = win_comp_pos();
-    screen_fill(row, cmdline_row, 0, (int)Columns, ' ', ' ', 0);
-    cmdline_row = row;
-    p_ch = MAX(Rows - cmdline_row, MIN_CMDHEIGHT);
-    curtab->tp_ch_used = p_ch;
-
+    win_comp_pos();
     win_fix_scroll(TRUE);
 
     redraw_all_later(UPD_SOME_VALID);
@@ -7291,11 +7274,6 @@ command_height(void)
     frame_T	*frp;
     int		old_p_ch = curtab->tp_ch_used;
 
-    // Use the value of p_ch that we remembered.  This is needed for when the
-    // GUI starts up, we can't be sure in what order things happen.  And when
-    // p_ch was changed in another tab page.
-    curtab->tp_ch_used = p_ch;
-
     // If the space for the command line is already more than 'cmdheight' there
     // is nothing to do (window size must have decreased).
     // Note: this makes curtab->tp_ch_used unreliable
@@ -7304,11 +7282,6 @@ command_height(void)
 
     // Update cmdline_row to what it should be: just below the last window.
     cmdline_row = topframe->fr_height + tabline_height();
-
-    // old_p_ch may be unreliable, because of the early return above, so
-    // set old_p_ch to what it would be, so that the windows get resized
-    // properly for the new value.
-    old_p_ch = Rows - cmdline_row;
 
     // Find bottom frame with width of screen.
     frp = lastwin->w_frame;
@@ -7332,7 +7305,6 @@ command_height(void)
 		{
 		    emsg(_(e_not_enough_room));
 		    p_ch = old_p_ch;
-		    curtab->tp_ch_used = p_ch;
 		    cmdline_row = Rows - p_ch;
 		    break;
 		}
@@ -7340,7 +7312,9 @@ command_height(void)
 		if (h > p_ch - old_p_ch)
 		    h = p_ch - old_p_ch;
 		old_p_ch += h;
+		set_command_height = TRUE;
 		frame_add_height(frp, -h);
+		set_command_height = FALSE;
 		frp = frp->fr_prev;
 	    }
 
@@ -7356,6 +7330,7 @@ command_height(void)
 		msg_row = cmdline_row;
 	    }
 	    redraw_cmdline = TRUE;
+	    curtab->tp_ch_used = p_ch;
 	    return;
 	}
 
@@ -7363,11 +7338,18 @@ command_height(void)
 	    msg_row = cmdline_row;
 	redraw_cmdline = TRUE;
     }
+    set_command_height = TRUE;
     frame_add_height(frp, (int)(old_p_ch - p_ch));
+    set_command_height = FALSE;
 
     // Recompute window positions.
     if (frp != lastwin->w_frame)
 	(void)win_comp_pos();
+
+    // Use the value of p_ch that we remembered.  This is needed for when the
+    // GUI starts up, we can't be sure in what order things happen.  And when
+    // p_ch was changed in another tab page.
+    curtab->tp_ch_used = p_ch;
 }
 
 /*
