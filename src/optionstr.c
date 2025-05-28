@@ -2248,11 +2248,24 @@ static int expand_eiw = FALSE;
     static char_u *
 get_eventignore_name(expand_T *xp, int idx)
 {
+    int subtract = *xp->xp_pattern == '-';
     // 'eventignore(win)' allows special keyword "all" in addition to
     // all event names.
-    if (idx == 0)
+    if (!subtract && idx == 0)
 	return (char_u *)"all";
-    return get_event_name_no_group(xp, idx - 1, expand_eiw);
+
+    char_u *name = get_event_name_no_group(xp, idx - 1 + subtract, expand_eiw);
+    if (name == NULL)
+	return NULL;
+
+    int len = subtract + strlen((char *)name);
+    char_u *buf = ALLOC_MULT(char_u, len + 1);
+    if (subtract)
+	buf[0] = '-';
+    memcpy(buf + subtract, name, strlen((char *)name));
+    buf[len] = NUL;
+
+    return buf;
 }
 
     int
